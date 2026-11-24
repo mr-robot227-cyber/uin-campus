@@ -6,8 +6,16 @@
 
 namespace uin {
 
-namespace { // espace de noms anonyme : fonction internes à ce fichier (chapitre 4)
+namespace {
 
+struct EntierLu {
+    bool valide{false};
+    int valeur{0};
+};
+struct ReelLu {
+    bool valide{false};
+    double valeur{0.0};
+};
 std::string lireLigne(std::string_view invite)
 {
     std::cout << invite;
@@ -15,26 +23,27 @@ std::string lireLigne(std::string_view invite)
     std::getline(std::cin, ligne);
     return ligne;
 }
-
-bool estEntierStrict(const std::string& text, int& valeur)
+[[nodiscard]] EntierLu versEntier(const std::string& texte)
 {
-    std::istringstream flux{text};
+    std::istringstream flux{texte};
+    int valeur{};
     char reste{};
-    return (flux >> valeur) && !(flux >> reste);
+    const bool valide = (flux >> valeur) && !(flux >> reste);
+    return {valide, valeur};
 }
-
-bool estReelStrict(std::string texte, double& valeur)
+[[nodiscard]] ReelLu versReel(std::string texte)
 {
     for (char& c : texte) {
         if (c == ',') {
             c = '.';
         }
     }
-    std::istringstream flux(texte);
+    std::istringstream flux{texte};
+    double valeur{};
     char reste{};
-    return (flux >> valeur) && !(flux >> reste);
+    const bool valide = (flux >> valeur) && !(flux >> reste);
+    return {valide, valeur};
 }
-
 } // namespace
 
 std::string lireTexte(std::string_view invite)
@@ -44,27 +53,26 @@ std::string lireTexte(std::string_view invite)
 int lireEntier(std::string_view invite, int min, int max)
 {
     while (std::cin) {
-        const std::string ligne = lireLigne(invite);
-        int valeur{};
-        if (!estEntierStrict(ligne, valeur)) {
-            std::cout << "Saisie invalide : entrez un nombre entier.\n";
+        const auto [valide, valeur] = versEntier(lireLigne(invite));
+        if (!valide) {
+            std::cout << " Saisie invalide : entrez un nombre entier.\n";
         } else if (valeur < min || valeur > max) {
-            std::cout << " Lavaleur doit etre comprise entre " << min << " et " << max << ".\n";
+            std::cout << " La valeur doit être comprise entre " << min << " et " << max << ".\n";
+
         } else {
             return valeur;
         }
     }
-    return min; // fin d'entrée : valeur de repli (sera remplacée par une exception au chapitre 15)
+    return min;
 }
 double lireNote(std::string_view invite)
 {
     while (std::cin) {
-        const std::string ligne = lireLigne(invite);
-        double note{};
-        if (!estReelStrict(ligne, note)) {
-            std::cout << "Saisie invalide : entrez un nombre (ex. 12.5 ou 15,5).\n";
+        const auto [valide, note] = versReel(lireLigne(invite));
+        if (!valide) {
+            std::cout << " Saisie invalide : entrez un nombre (ex. 12.5 ou 12,5).\n";
         } else if (!estNoteValide(note)) {
-            std::cout << " La note doit etre comprise entre" << noteMin << " et" << noteMax
+            std::cout << " La note doit être comprise entre " << noteMin << " et " << noteMax
                       << ".\n";
         } else {
             return note;
