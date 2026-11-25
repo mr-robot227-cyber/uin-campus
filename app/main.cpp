@@ -1,9 +1,5 @@
-#include "uincampus/calculs.hpp"
-#include "uincampus/regles.hpp"
-#include "uincampus/saisie.hpp"
-#include "uincampus/version.hpp"
+#include "uincampus/uincampus.hpp"
 
-#include <cstdio>
 #include <cstdlib>
 #include <format>
 #include <print>
@@ -18,8 +14,9 @@ enum class Suite { Continuer, Terminer, Erreur };
 
 void afficherAide()
 {
+
     std::println("Usage : uin-campus [--version] [--aide]");
-    std::println(" --version affiche la version");
+    std::println(" --version affiche la version et les informations de construction");
     std::println(" --aide affiche cette aide");
 }
 
@@ -30,7 +27,7 @@ void afficherAide()
     }
     for (const std::string_view option : arguments.subspan(1)) {
         if (option == "--version") {
-            std::println("uin-campus {}", uin::version());
+            std::println("{}", uin::informationsConstruction());
             return Suite::Terminer;
         }
         if (option == "--aide") {
@@ -41,15 +38,16 @@ void afficherAide()
         afficherAide();
         return Suite::Erreur;
     }
-
     return Suite::Continuer;
 }
+// afficherLigne : inchangée par rapport au chapitre 5
 void afficherLigne(std::string_view libelle, std::string_view valeur)
 {
     std::println("{:<24}{:>20}", libelle, valeur);
 }
-} // namespace
 
+} // namespace
+// main : inchangé par rapport au chapitre 5
 int main(int argc, char* argv[])
 {
     switch (traiterOptions(std::span{argv, static_cast<std::size_t>(argc)})) {
@@ -60,14 +58,17 @@ int main(int argc, char* argv[])
     case Suite::Continuer:
         break;
     }
+
     std::println("UIN-Campus {} — Relevé d'un étudiant\n", uin::version());
 
     const std::string nom = uin::lireTexte("Nom de l'étudiant : ");
     const int nbUE = uin::lireEntier("Nombre d'UE (1 à 30) : ", 1, 30);
+
     std::vector<double> notes;
     std::vector<double> coefficients;
     notes.reserve(static_cast<std::size_t>(nbUE));
     coefficients.reserve(static_cast<std::size_t>(nbUE));
+
     for (int i{1}; i <= nbUE; ++i) {
         notes.push_back(uin::lireNote(std::format(" Note de l'UE {} : ", i)));
         coefficients.push_back(static_cast<double>(
